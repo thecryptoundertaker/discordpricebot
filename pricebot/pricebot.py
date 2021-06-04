@@ -10,7 +10,7 @@ from web3 import Web3
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-def fetch_abi(contract):
+def fetch_abi(contract, bsc_apikey):
     if not os.path.exists('contracts'):
         os.mkdir('./contracts')
 
@@ -20,13 +20,13 @@ def fetch_abi(contract):
             abi = abi_file.read()
     else:
         # TODO: Error handling
-        url = 'https://api.bscscan.com/api?module=contract&action=getabi&address=' + contract
+        url = 'https://api.ftmscan.com/api?module=contract&action=getabi&address=' + contract + '&apikey=' + bsc_apikey
         abi_response = urlopen(Request(url, headers={'User-Agent': 'Mozilla'})).read().decode('utf8')
         abi = json.loads(abi_response)['result']
 
         with open(filename, 'w') as abi_file:
             abi_file.write(abi)
-
+        print(abi)
     return json.loads(abi)
 
 def list_cogs(directory):
@@ -42,12 +42,12 @@ class PriceBot(commands.Bot):
     bnb_price = 0
     token_amount = 0
     total_supply = 0
-    display_precision = Decimal('0.0001')  # Round to 4 token_decimals
+    display_precision = Decimal('0.01')  # Round to 4 token_decimals
 
     # Static BSC contract addresses
     address = {
-        'bnb' : '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
-        'busd': '0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56'
+        'bnb' : '0x21be370D5312f44cB42ce377BC9b8a0cEF1A4C83',
+        'busd': '0x049d68029688eAbF473097a2fC38ef61633A3C7A'
     }
 
     intents = discord.Intents.default()
@@ -76,7 +76,7 @@ class PriceBot(commands.Bot):
         self.contracts['bnb'] = self.web3.eth.contract(address=self.address['bnb'], abi=self.token['abi'])
         self.contracts['busd'] = self.web3.eth.contract(address=self.address['busd'], abi=self.token['abi'])
         self.contracts['token'] = self.web3.eth.contract(address=self.token['contract'], abi=self.token['abi'])
-        self.contracts['lp'] = self.web3.eth.contract(address=self.token['lp'], abi=fetch_abi(self.token['lp']))
+        self.contracts['lp'] = self.web3.eth.contract(address=self.token['lp'], abi=fetch_abi(self.token['lp'], self.config['bscscan_apikey']))
 
         if not self.token.get('decimals'):
             self.token['decimals'] = self.contracts['token'].functions.decimals().call()
@@ -140,12 +140,12 @@ class PriceBot(commands.Bot):
             values = [Decimal(self.token_amount / total_supply), Decimal(self.bnb_amount / total_supply)]
             lp_price = self.current_price * values[0] * 2
 
-            return f"LP ≈${round(lp_price, 2)} | {round(values[0], 4)} {self.token['icon']} + {round(values[1], 4)} BNB"
+            return f"LP ≈${round(lp_price, 2)} | {round(values[0], 4)} {self.token['icon']} + {round(values[1], 4)} FTM"
         except ValueError:
             pass
 
     def generate_nickname(self):
-        return f"{self.token['icon']} ${self.current_price:.4f} ({round(self.bnb_amount / self.token_amount, 4):.4f})"
+        return f"{self.token['icon']} ${self.current_price:.2f} ({round(self.bnb_amount / self.token_amount, 2):.2f} FTM)"
 
     async def get_lp_value(self):
         self.total_supply = self.contracts['lp'].functions.totalSupply().call()

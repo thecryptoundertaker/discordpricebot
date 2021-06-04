@@ -25,7 +25,8 @@ for cfg_name, cfg_info in cfg_data.items():
         raise Exception(f"Each instance must have a token configuration")
 
     token['name'] = cfg_name
-    token['abi'] = pricebot.fetch_abi(token['contract'])
+    print(cfg_data)
+    token['abi'] = pricebot.fetch_abi(token['contract'], cfg_defaults.get('bscscan_apikey'))
 
     config = ({**cfg_defaults, **cfg_info.get('config', {})})
 

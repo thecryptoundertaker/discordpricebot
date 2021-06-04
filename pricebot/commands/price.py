@@ -84,7 +84,7 @@ class Prices(commands.Cog, command_attrs=dict(hidden=True)):
             token_value = str(round(values[0] * num_tokens, 5))
             bnb_value = str(round(values[1] * num_tokens, 5))
 
-            output_header = f"{format(num_tokens, '.12g')} {self.bot.token['name']}/BNB LP"
+            output_header = f"{format(num_tokens, '.12g')} {self.bot.token['name']}/FTM LP"
             output_body = f"{self.bot.icon_value(token_value)} + {bnb_emoji} {bnb_value}"
 
         embed = discord.Embed(color=0x98FB98, title=output_header, description=output_body)

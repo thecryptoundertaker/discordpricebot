@@ -8,6 +8,7 @@ _config:
       address: '0xf2e4E3F9B58b3eDaC88Ad11D689a23f3119a782D'
       name: StreetSwap
   bnb_emoji: <:bnb:794297484473532447> # External emoji for BNB if used on multiple servers
+  bscscan_apikey: ABCD # BSCScan API Key
   refresh_rate: 15 # How often prices refresh
   bsc_node: https://bsc-dataseed2.binance.org # HTTP RPC or local RPC path
 CAKE:
