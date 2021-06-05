@@ -30,8 +30,7 @@ class Prices(commands.Cog, command_attrs=dict(hidden=True)):
     async def update_price(self):
         try:
             self.bot.current_price = self.bot.get_token_price()
-        except Exception:
-            # Ignore issues with blockchain timeouts, but don't update anything
+        except Exception as e:
             return
 
         for guild in self.bot.guilds:

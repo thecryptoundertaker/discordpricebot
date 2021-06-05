@@ -26,7 +26,6 @@ def fetch_abi(contract, bsc_apikey):
 
         with open(filename, 'w') as abi_file:
             abi_file.write(abi)
-        print(abi)
     return json.loads(abi)
 
 def list_cogs(directory):
@@ -42,12 +41,17 @@ class PriceBot(commands.Bot):
     bnb_price = 0
     token_amount = 0
     total_supply = 0
-    display_precision = Decimal('0.01')  # Round to 4 token_decimals
+    display_precision = Decimal('0.0001')  # Round to 4 token_decimals
 
     # Static BSC contract addresses
     address = {
         'bnb' : '0x21be370D5312f44cB42ce377BC9b8a0cEF1A4C83',
         'busd': '0x049d68029688eAbF473097a2fC38ef61633A3C7A'
+    }
+
+    decimals = {
+        'bnb': 18,
+        'busd': 6
     }
 
     intents = discord.Intents.default()
@@ -108,8 +112,8 @@ class PriceBot(commands.Bot):
         return f"{value}{self.token['name']}"
 
     def get_bnb_price(self, lp):
-        bnb_amount = Decimal(self.contracts['bnb'].functions.balanceOf(lp).call())
-        busd_amount = Decimal(self.contracts['busd'].functions.balanceOf(lp).call())
+        bnb_amount = Decimal(self.contracts['bnb'].functions.balanceOf(lp).call()) * Decimal(10 ** (18 - self.decimals['bnb']))
+        busd_amount = Decimal(self.contracts['busd'].functions.balanceOf(lp).call()) * Decimal(10 ** (18 - self.decimals['busd']))
 
         self.bnb_price = Decimal(busd_amount) / Decimal(bnb_amount)
 
@@ -120,6 +124,7 @@ class PriceBot(commands.Bot):
         self.token_amount = Decimal(token_contract.functions.balanceOf(native_lp).call()) * Decimal(10 ** (18 - self.token["decimals"]))  # Normalize token_decimals
 
         bnb_price = self.get_bnb_price(bnb_lp)
+
 
         try:
             final_price = self.bnb_amount / self.token_amount * bnb_price
@@ -145,7 +150,7 @@ class PriceBot(commands.Bot):
             pass
 
     def generate_nickname(self):
-        return f"{self.token['icon']} ${self.current_price:.2f} ({round(self.bnb_amount / self.token_amount, 2):.2f} FTM)"
+        return f"{self.token['icon']} ${self.current_price:.2f} ({round(self.bnb_amount / self.token_amount, 4):.4f} FTM)"
 
     async def get_lp_value(self):
         self.total_supply = self.contracts['lp'].functions.totalSupply().call()
